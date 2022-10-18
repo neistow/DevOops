@@ -1,3 +1,4 @@
+using DemoApp.Publisher.Options;
 using StackExchange.Redis;
 
 namespace DemoApp.Publisher;
@@ -6,15 +7,17 @@ public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
-    private const string StreamKey = "my-stream";
+    private readonly WorkerOptions _options;
 
     public Worker(
         ILogger<Worker> logger,
-        IServiceScopeFactory scopeFactory
+        IServiceScopeFactory scopeFactory,
+        IConfiguration configuration
     )
     {
         _logger = logger;
         _scopeFactory = scopeFactory;
+        _options = configuration.GetSection(WorkerOptions.Key).Get<WorkerOptions>();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -27,11 +30,13 @@ public class Worker : BackgroundService
 
             var database = scope.ServiceProvider.GetRequiredService<IDatabase>();
             var entry = await database.StreamAddAsync(
-                StreamKey,
+                _options.StreamKey,
                 "timestamp",
                 DateTimeOffset.UtcNow.ToString("F"));
 
-            _logger.LogInformation("Added entry {entryId} to {streamKey}", entry.ToString(), StreamKey);
+            _logger.LogInformation("Added entry {entryId} to {streamKey}", 
+                entry.ToString(),
+                _options.StreamKey);
 
             var delay = Random.Shared.Next(500, 10000);
             _logger.LogInformation("Now waiting for {delayTime}", delay);
