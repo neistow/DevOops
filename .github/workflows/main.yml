@@ -1,7 +1,9 @@
 name: DemoApp main workflow
 
 on:
-  push:
+  pull_request:
+    branches:
+      - 'master'
   workflow_dispatch:
 
 jobs:
