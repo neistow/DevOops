@@ -30,7 +30,7 @@ jobs:
         id: worker_meta
         uses: docker/metadata-action@v4.1.1
         with:
-          images: ${{ format('{0}/{1}', env.BASE_IMG_NAME, 'worker' }}
+          images: ${{ format('{0}/{1}', env.BASE_IMG_NAME, 'worker') }}
           tags: |
             type=semver,pattern={{version}}
             type=sha
@@ -48,7 +48,7 @@ jobs:
         id: publisher_meta
         uses: docker/metadata-action@v4.1.1
         with:
-          images: ${{ format('{0}/{1}', env.BASE_IMG_NAME, 'publisher' }}
+          images: ${{ format('{0}/{1}', env.BASE_IMG_NAME, 'publisher') }}
           tags: |
             type=semver,pattern={{version}}
             type=sha
