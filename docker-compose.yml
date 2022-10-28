@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  worker:
+    environment:
+      ConnectionStrings__Redis: "redis"
+
+  publisher:
+    environment:
+      ConnectionStrings__Redis: "redis"
+
+  redis:
+    image: "redis:7-alpine"
+    command:
+      - "--save"
+      - "60"
+      - "1"
+    volumes:
+      - "redis-data:/data"
+
+volumes:
+  redis-data:
