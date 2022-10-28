@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  worker:
+    image: "ghcr.io/neistow/devoops/worker:${WORKER_TAG:-latest}"
+    environment:
+      WorkerOptions__StreamKey: "my-stream"
+      WorkerOptions__ConsumerName: "{{ .Task.Slot }}"
+      WorkerOptions__GroupName: "my-group"
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  publisher:
+    image: "ghcr.io/neistow/devoops/publisher:${PUBLISHER_TAG:-latest}"
+    environment:
+      WorkerOptions__StreamKey: "my-stream"
+    deploy:
+      mode: replicated
+      replicas: 1
+  
+  redis:
+    command:
+      - "--save"
+      - "60"
+      - "1"
+      - "--loglevel"
+      - "notice"
