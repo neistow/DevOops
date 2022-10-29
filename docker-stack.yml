@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  worker:
+    image: "ghcr.io/neistow/devoops/worker:${WORKER_TAG:-latest}"
+    environment:
+      ConnectionStrings__Redis: "redis"
+      WorkerOptions__StreamKey: "my-stream"
+      WorkerOptions__ConsumerName: "{{ .Task.Slot }}"
+      WorkerOptions__GroupName: "my-group"
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy: 
+        delay: 5s
+        max_attempts: 3
+      update_config:
+        parallelism: 1
+        monitor: 10s
+        order: start-first
+        failure_action: rollback
+
+  publisher:
+    image: "ghcr.io/neistow/devoops/publisher:${PUBLISHER_TAG:-latest}"
+    environment:
+      ConnectionStrings__Redis: "redis"
+      WorkerOptions__StreamKey: "my-stream"
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        delay: 5s
+        max_attempts: 3
+      update_config:
+        parallelism: 1
+        monitor: 10s
+        order: start-first
+        failure_action: rollback
+  
+  redis:
+    image: "redis:7-alpine"
+    command:
+      - "--save"
+      - "60"
+      - "1"
+      - "--loglevel"
+      - "notice"
+    volumes:
+      - "redis-data:/data"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.redis-node == true"
+
+volumes:
+  redis-data:

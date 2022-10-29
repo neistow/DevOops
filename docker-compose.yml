@@ -2,11 +2,19 @@ version: "3.8"
 
 services:
   worker:
+    build:
+      context: "./DemoApp"
+      dockerfile: "./Worker.Dockerfile"
     environment:
+      DOTNET_ENVIRONMENT: "Development"
       ConnectionStrings__Redis: "redis"
 
   publisher:
+    build:
+      context: "./DemoApp"
+      dockerfile: "./Publisher.Dockerfile"
     environment:
+      DOTNET_ENVIRONMENT: "Development"
       ConnectionStrings__Redis: "redis"
 
   redis:
