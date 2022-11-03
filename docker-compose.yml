@@ -5,17 +5,23 @@ services:
     build:
       context: "./DemoApp"
       dockerfile: "./Worker.Dockerfile"
+    depends_on:
+      - elasticsearch
     environment:
       DOTNET_ENVIRONMENT: "Development"
       ConnectionStrings__Redis: "redis"
+      ConnectionStrings__ElasticSearch: "http://elasticsearch:9200"
 
   publisher:
     build:
       context: "./DemoApp"
       dockerfile: "./Publisher.Dockerfile"
+    depends_on:
+      - elasticsearch
     environment:
       DOTNET_ENVIRONMENT: "Development"
       ConnectionStrings__Redis: "redis"
+      ConnectionStrings__ElasticSearch: "http://elasticsearch:9200"
 
   redis:
     image: "redis:7-alpine"
@@ -26,5 +32,22 @@ services:
     volumes:
       - "redis-data:/data"
 
+  elasticsearch:
+    image: "elasticsearch:7.17.7"
+    environment:
+      - "discovery.type=single-node"
+    volumes:
+      - "es-data:/usr/share/elasticsearch/data"
+
+  kibana:
+    image: "kibana:7.17.7"
+    depends_on: 
+      - elasticsearch
+    ports:
+      - "5601:5601"
+    environment:
+      - "ELASTICSEARCH_HOSTS=http://elasticsearch:9200"
+
 volumes:
   redis-data:
+  es-data:

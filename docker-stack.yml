@@ -52,5 +52,22 @@ services:
         constraints:
           - "node.labels.redis-node == true"
 
+  elasticsearch:
+    image: "elasticsearch:7.17.7"
+    environment:
+      - "discovery.type=single-node"
+    volumes:
+      - "es-data:/usr/share/elasticsearch/data"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.es-node == true"
+
+  kibana:
+    image: "kibana:7.17.7"
+    environment:
+      - "ELASTICSEARCH_HOSTS=http://elasticsearch:9200"
+
 volumes:
   redis-data:
+  es-data:
