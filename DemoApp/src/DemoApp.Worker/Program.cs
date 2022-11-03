@@ -14,7 +14,7 @@ var host = Host.CreateDefaultBuilder(args)
 
         services.AddHostedService<Worker>();
     })
-    .UseSerilogWithElastic(typeof(Program).Assembly.GetName().Name)
+    .UseSerilogWithElastic(typeof(Program).Assembly.GetName().Name!)
     .Build();
 
 await host.RunWithTasksAsync();
