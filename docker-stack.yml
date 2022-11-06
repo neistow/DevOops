@@ -1,17 +1,73 @@
 version: "3.8"
 
+
 services:
+  traefik:
+    image: "traefik:2.9"
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      GODADDY_API_KEY: "${GODADDY_API_KEY:?Required}"
+      GODADDY_API_SECRET: "${GODADDY_API_SECRET:?Required}"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "traefik-public-certificates:/certificates"
+    deploy:
+      placement:
+        constraints:
+          - "node.role == manager"
+          - "node.labels.traefik-node == true"
+      labels:
+        # Expose service to the world
+        - "traefik.enable=true"
+        # Setup admin ui service
+        - "traefik.http.middlewares.admin-auth.basicauth.users=${USERNAME:?Required}:${HASHED_PASSWORD:?Required}"
+        - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN:?Required}`)"
+        - "traefik.http.routers.traefik.entrypoints=https"
+        - "traefik.http.routers.traefik.tls=true"
+        - "traefik.http.routers.traefik.tls.certresolver=le"
+        - "traefik.http.routers.traefik.service=api@internal"
+        - "traefik.http.routers.traefik.middlewares=admin-auth"
+        - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+    command:
+      # Enable docker provider
+      - "--providers.docker"
+      - "--providers.docker.swarmMode"
+      - "--providers.docker.exposedbydefault=false"
+      # Define entry points
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.https.address=:443"
+      # Http to Https redirect
+      - "--entrypoints.http.http.redirections.entryPoint.to=https"
+      - "--entrypoints.http.http.redirections.entryPoint.scheme=https"
+      # Setup certificates
+      #      - "--certificatesresolvers.le.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.le.acme.email=${LETSENCRYPT_EMAIL:?Required}"
+      - "--certificatesresolvers.le.acme.storage=/certificates/acme.json"
+      - "--certificatesresolvers.le.acme.dnschallenge=true"
+      - "--certificatesresolvers.le.acme.dnschallenge.provider=godaddy"
+      - "--certificatesresolvers.le.acme.dnschallenge.delaybeforecheck=0"
+      # Setup TLS
+      - "--entrypoints.https.http.tls.domains[0].main=${DOMAIN:?Required}"
+      - "--entrypoints.https.http.tls.domains[0].sans=*.${DOMAIN:?Required}"
+      # Enable dashboard, api and logs
+      - "--api"
+      - "--accesslog"
+      - "--log"
+  
   worker:
     image: "ghcr.io/neistow/devoops/worker:${WORKER_TAG:-latest}"
     environment:
       ConnectionStrings__Redis: "redis"
+      ConnectionStrings__ElasticSearch: "http://elasticsearch:9200"
       WorkerOptions__StreamKey: "my-stream"
       WorkerOptions__ConsumerName: "{{ .Task.Slot }}"
       WorkerOptions__GroupName: "my-group"
     deploy:
       mode: replicated
       replicas: 1
-      restart_policy: 
+      restart_policy:
         delay: 5s
         max_attempts: 3
       update_config:
@@ -24,6 +80,7 @@ services:
     image: "ghcr.io/neistow/devoops/publisher:${PUBLISHER_TAG:-latest}"
     environment:
       ConnectionStrings__Redis: "redis"
+      ConnectionStrings__ElasticSearch: "http://elasticsearch:9200"
       WorkerOptions__StreamKey: "my-stream"
     deploy:
       mode: replicated
@@ -67,7 +124,18 @@ services:
     image: "kibana:7.17.7"
     environment:
       - "ELASTICSEARCH_HOSTS=http://elasticsearch:9200"
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.middlewares.kibana-auth.basicauth.users=${USERNAME:?Required}:${HASHED_PASSWORD:?Required}"
+        - "traefik.http.routers.kibana.rule=Host(`kibana.${DOMAIN:?Required}`)"
+        - "traefik.http.routers.kibana.entrypoints=https"
+        - "traefik.http.routers.kibana.tls=true"
+        - "traefik.http.routers.kibana.tls.certresolver=le"
+        - "traefik.http.routers.kibana.middlewares=kibana-auth"
+        - "traefik.http.services.kibana.loadbalancer.server.port=5601"
 
 volumes:
   redis-data:
   es-data:
+  traefik-public-certificates:
