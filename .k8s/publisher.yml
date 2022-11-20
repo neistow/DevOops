@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: devoops
+  name: demo-app-publisher
+  labels:
+    name: demo-app
+    component: publisher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: demo-app
+      component: publisher
+  template:
+    metadata:
+      labels:
+        name: demo-app
+        component: publisher
+    spec:
+      containers:
+        - name: demo-app-publisher
+          image: ghcr.io/neistow/devoops/publisher:0.0.2
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: demo-app-config
+          resources:
+            requests:
+              cpu: 250m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      restartPolicy: Always

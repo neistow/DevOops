@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: devoops
+  name: demo-app
+  labels:
+    name: demo-app
+    component: ingress
+spec:
+  rules:
+  - host: demoapp.localhost
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: demo-app-kibana
+            port: 
+              name: http
