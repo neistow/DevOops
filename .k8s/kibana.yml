@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: devoops
+  name: demo-app-kibana
+spec:
+  selector:
+    name: demo-app
+    component: kibana
+  ports:
+    - port: 80
+      targetPort: 5601
+      name: http
+  type: ClusterIP
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: devoops
+  name: demo-app-kibana
+spec:
+  selector:
+    matchLabels:
+      name: demo-app
+      component: kibana
+  template:
+    metadata:
+      labels:
+        name: demo-app
+        component: kibana
+    spec:
+      containers:
+      - name: demo-app-kibana
+        image: kibana:7.17.7
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: ELASTICSEARCH_HOSTS
+            value: http://demo-app-elastic-0.demo-app-elastic:9200
+        ports:
+          - name: http
+            containerPort: 5601
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        #   limits:
+        #     cpu: 500m
+        #     memory: 256Mi

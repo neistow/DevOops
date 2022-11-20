@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: devoops
+  name: demo-app-worker
+  labels:
+    name: demo-app
+    component: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: demo-app
+      component: worker
+  template:
+    metadata:
+      labels:
+        name: demo-app
+        component: worker
+    spec:
+      containers:
+        - name: demo-app-worker
+          image: ghcr.io/neistow/devoops/worker:0.0.2
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: demo-app-config
+          env:
+            - name: WorkerOptions__ConsumerName
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+          resources:
+            requests:
+              cpu: 250m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      restartPolicy: Always
