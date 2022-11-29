@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: devoops
+  name: demo-app-config
+data:
+  ConnectionStrings__Redis: demo-app-redis
+  ConnectionStrings__ElasticSearch: http://demo-app-elastic-0.demo-app-elastic:9200
+  WorkerOptions__StreamKey: my-stream
+  WorkerOptions__GroupName: my-group
