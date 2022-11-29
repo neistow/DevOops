@@ -1,0 +1,25 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app.fullname" . }}-kibana
+spec:
+  selector:
+    matchLabels:
+      {{- include "kibana.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "kibana.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "app.fullname" . }}-kibana
+          image: {{ .Values.kibana.image }}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: {{ include "elastic.url" . }}
+          ports:
+            - name: http
+              containerPort: 5601
+          resources:
+            {{- toYaml .Values.kibana.resources | nindent 12 }}

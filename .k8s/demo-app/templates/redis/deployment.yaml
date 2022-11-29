@@ -1,0 +1,25 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app.fullname" . }}-redis
+  labels:
+    {{- include "redis.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "redis.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        {{- include "redis.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "app.fullname" . }}-redis
+          image: {{ .Values.redis.image }}
+          imagePullPolicy: IfNotPresent
+          args:
+            {{- toYaml .Values.redis.args | nindent 12 }}
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+      restartPolicy: Always

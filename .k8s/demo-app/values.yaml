@@ -1,0 +1,78 @@
+# Default values for app.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+worker:
+  replicas: 1
+  image: ghcr.io/neistow/devoops/worker:0.0.2
+  resources:
+    requests:
+      cpu: 250m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+publisher:
+  replicas: 1
+  image: ghcr.io/neistow/devoops/publisher:0.0.2
+  resources:
+    requests:
+      cpu: 250m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+redis:
+  image: redis:7-alpine
+  args:
+    - --loglevel
+    - notice
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+elastic:
+  image: elasticsearch:7.17.7
+  containerResources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      memory: 1.5Gi
+  volumeResources:
+    requests:
+      storage: 5Gi
+
+kibana:
+  image: kibana:7.17.7
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: { }
+  # kubernetes.io/ingress.class: nginx
+  # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: kibana1.demo-app.localhost
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          serviceName: kibana
+          servicePortName: http
+  tls: [ ]
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local

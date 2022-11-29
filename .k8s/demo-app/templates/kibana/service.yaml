@@ -1,0 +1,14 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "app.fullname" . }}-kibana
+  labels:
+    {{- include "kibana.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "kibana.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: 80
+      targetPort: 5601
+      name: http
+  type: ClusterIP

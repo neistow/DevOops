@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "app.fullname" . }}-elastic
+  labels:
+    {{- include "elastic.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "elastic.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "app.fullname" . }}-elastic
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        {{- include "elastic.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "app.fullname" . }}-elastic
+          image: {{ .Values.elastic.image }}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: discovery.type
+              value: single-node
+          volumeMounts:
+            - name: es-data
+              mountPath: /usr/share/elasticsearch/data
+          ports:
+            - containerPort: 9200
+          resources:
+            {{- toYaml .Values.elastic.containerResources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata:
+        name: es-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          {{- toYaml .Values.elastic.volumeResources | nindent 10 }}
