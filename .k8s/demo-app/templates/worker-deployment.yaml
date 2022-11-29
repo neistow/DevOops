@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app.fullname" . }}-worker
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  replicas: {{ .Values.worker.replicas }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        {{- include "app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: worker
+    spec:
+      containers:
+        - name: {{ include "app.fullname" . }}-worker
+          image: {{ .Values.worker.image }}
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: {{ include "app.fullname" . }}-config
+          env:
+            - name: WorkerOptions__ConsumerName
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+      restartPolicy: Always

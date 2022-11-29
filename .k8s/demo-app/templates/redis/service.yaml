@@ -1,0 +1,12 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "app.fullname" . }}-redis
+  labels:
+    {{- include "redis.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "redis.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: 6379
+  type: ClusterIP

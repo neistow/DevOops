@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app.fullname" . }}-publisher
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: publisher
+spec:
+  replicas: {{ .Values.publisher.replicas }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: publisher
+  template:
+    metadata:
+      labels:
+        {{- include "app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: publisher
+    spec:
+      containers:
+        - name: {{ include "app.fullname" . }}-publisher
+          image: {{ .Values.publisher.image }}
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: {{ include "app.fullname" . }}-config
+          resources:
+            {{- toYaml .Values.publisher.resources | nindent 12 }}
+      restartPolicy: Always
