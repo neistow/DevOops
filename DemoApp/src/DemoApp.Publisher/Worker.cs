@@ -17,14 +17,15 @@ public class Worker : BackgroundService
     {
         _logger = logger;
         _scopeFactory = scopeFactory;
-        _options = configuration.GetSection(WorkerOptions.Key).Get<WorkerOptions>();
+        _options = configuration.GetSection(WorkerOptions.Key).Get<WorkerOptions>() 
+                   ?? throw new ArgumentException("Worker option section is not defined");
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.UtcNow);
 
             using var scope = _scopeFactory.CreateScope();
 
