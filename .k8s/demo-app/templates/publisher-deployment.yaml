@@ -21,6 +21,18 @@ spec:
         - name: {{ include "app.fullname" . }}-publisher
           image: {{ .Values.publisher.image }}
           imagePullPolicy: IfNotPresent
+          startupProbe:
+            httpGet:
+              path: /healthz/startup
+              port: 5000
+          readinessProbe:
+            httpGet:
+              path: /healthz/ready
+              port: 80
+          livenessProbe:
+            httpGet:
+              path: /healthz/live
+              port: 80
           envFrom:
             - configMapRef:
                 name: {{ include "app.fullname" . }}-config
