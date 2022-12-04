@@ -14,11 +14,14 @@ public static class HostBuilderExtensions
             var normalizedAppName = applicationName.ToLower().Replace(".", "-");
             var environmentName = ctx.HostingEnvironment.EnvironmentName.ToLower().Replace(".", "-");
 
+            var elasticConnectionString = ctx.Configuration.GetConnectionString("ElasticSearch")
+                                          ?? throw new ArgumentNullException();
+
             cfg.ReadFrom.Configuration(ctx.Configuration)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .WriteTo.Elasticsearch(
-                    new ElasticsearchSinkOptions(new Uri(ctx.Configuration.GetConnectionString("ElasticSearch")))
+                    new ElasticsearchSinkOptions(new Uri(elasticConnectionString))
                     {
                         AutoRegisterTemplate = true,
                         AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv7,

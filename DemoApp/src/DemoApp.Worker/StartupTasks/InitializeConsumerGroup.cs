@@ -4,20 +4,21 @@ using StackExchange.Redis;
 
 namespace DemoApp.Worker.StartupTasks;
 
-public class InitializeConsumerGroupTask : IStartupTask
+public class InitializeConsumerGroup : IStartupTask
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly WorkerOptions _options;
-    private readonly ILogger<InitializeConsumerGroupTask> _logger;
+    private readonly ILogger<InitializeConsumerGroup> _logger;
 
-    public InitializeConsumerGroupTask(
+    public InitializeConsumerGroup(
         IServiceScopeFactory scopeFactory,
         IConfiguration configuration,
-        ILogger<InitializeConsumerGroupTask> logger)
+        ILogger<InitializeConsumerGroup> logger)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
-        _options = configuration.GetSection(WorkerOptions.Key).Get<WorkerOptions>();
+        _options = configuration.GetSection(WorkerOptions.Key).Get<WorkerOptions>() 
+                   ?? throw new ArgumentNullException();
     }
 
     public async Task ExecuteAsync(CancellationToken cancellationToken = default)
@@ -45,12 +46,9 @@ public class InitializeConsumerGroupTask : IStartupTask
 
             _logger.LogWarning("Consumer group {consumerGroup} wasn't created", _options.GroupName);
         }
-        catch (RedisServerException ex)
+        catch (RedisServerException ex) when (ex.Message.Contains("BUSYGROUP"))
         {
-            if (!ex.Message.Contains("BUSYGROUP"))
-            {
-                throw;
-            }
+            // safely ignore exception since group already exists
         }
     }
 }

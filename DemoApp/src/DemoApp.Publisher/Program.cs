@@ -1,19 +1,29 @@
 using DemoApp.Publisher;
 using DemoApp.Shared;
+using DemoApp.Shared.HealthChecks;
 
-var host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices((ctx, services) =>
-    {
-        var cfg = ctx.Configuration;
+var builder = WebApplication.CreateBuilder(args);
 
-        var redisConnectionString = cfg.GetConnectionString("Redis");
-        services.AddRedis(redisConnectionString);
+var configuration = builder.Configuration;
+var services = builder.Services;
 
-        services.AddHostedService<Worker>();
-    })
-    .UseSerilogWithElastic(typeof(Program).Assembly.GetName().Name!)
-    .Build();
+services.AddHealthChecks().AddCommonHealthChecks();
 
-await host.RunWithTasksAsync();
+var redisConnectionString = configuration.GetConnectionString("Redis")
+                            ?? throw new ArgumentNullException();
+services.AddRedis(redisConnectionString);
 
-public partial class Program { }
+services.AddHostedService<Worker>();
+
+var host = builder.Host;
+host.UseSerilogWithElastic(typeof(Program).Assembly.GetName().Name!);
+
+var app = builder.Build();
+
+app.MapCommonHealthChecks();
+
+await app.RunWithTasksAsync();
+
+public partial class Program
+{
+}
