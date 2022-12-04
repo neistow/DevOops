@@ -8,7 +8,7 @@ fullnameOverride: ""
 
 worker:
   replicas: 1
-  image: ghcr.io/neistow/devoops/worker:0.0.2
+  image: ghcr.io/neistow/devoops/worker:0.0.3
   resources:
     requests:
       cpu: 250m
@@ -18,7 +18,7 @@ worker:
 
 publisher:
   replicas: 1
-  image: ghcr.io/neistow/devoops/publisher:0.0.2
+  image: ghcr.io/neistow/devoops/publisher:0.0.3
   resources:
     requests:
       cpu: 250m
